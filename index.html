@@ -755,6 +755,19 @@
             document.getElementById('refresh-loader').classList.add('hidden');
         }
 
+        // === NOVA FUNÇÃO PARA LIMPAR O AVISO DE SUCESSO OTA DO FIREBASE ===
+        async function clearOtaStatus(clientId) {
+            let reqUrl = `${FB_URL}clients/${clientId}/status/ota_update_status.json?auth=${FB_SECRET}`;
+            try {
+                await fetch(reqUrl, { method: 'DELETE' });
+                // Remove visualmente de imediato
+                if (window.clientsCache[clientId] && window.clientsCache[clientId].status) {
+                    delete window.clientsCache[clientId].status.ota_update_status;
+                    renderClients(window.clientsCache);
+                }
+            } catch(e) {}
+        }
+
         function toggleClientCard(clientId) {
             if (window.innerWidth >= 768) return;
             if (expandedClients.has(clientId)) {
@@ -850,6 +863,23 @@
                 
                 const zombieBadge = isZombie ? `<span class="bg-red-500/20 border border-red-500 text-red-400 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded font-bold ml-2 animate-pulse" title="O comando de Auto-Destruição falhou ou o agente foi reativado no hospedeiro.">FALHA DESTRUIÇÃO</span>` : '';
 
+                // === LÓGICA DO ALERTA VISUAL DE SUCESSO OTA ===
+                const otaUpdateStatus = clientData.status?.ota_update_status;
+                let otaAlertHtml = '';
+                if (otaUpdateStatus) {
+                    otaAlertHtml = `
+                        <div class="mt-3 bg-emerald-500/10 border border-emerald-500/50 rounded-lg p-3 flex justify-between items-center shadow-[0_0_15px_rgba(16,185,129,0.2)] animate-pulse mb-2">
+                            <span class="text-[10px] sm:text-xs text-emerald-400 font-bold flex items-center gap-2">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                SISTEMA ATUALIZADO: ${otaUpdateStatus}
+                            </span>
+                            <button onclick="clearOtaStatus('${escClientId}')" class="text-emerald-500 hover:text-white bg-emerald-900/40 hover:bg-emerald-600 p-1.5 rounded-lg transition-colors active:scale-95" title="Limpar Notificação">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    `;
+                }
+
                 // --- HTML DO TEMPO GASTO NOS SITES ---
                 const timeSpent = clientData.status?.time_spent || {};
                 let timeSpentHtml = '';
@@ -894,6 +924,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        ${otaAlertHtml}
                         
                         <!-- BODY -->
                         <div class="${detailsDisplayClass} mt-4 pt-4 border-t border-slate-800 md:mt-0 md:pt-0 md:border-t-0">
@@ -1377,7 +1409,7 @@
                 setTimeout(() => { 
                     bar.style.width = '100%'; 
                     perc.innerText = '100%'; 
-                    status.innerText = '✅ Atualização enviada com Sucesso!'; 
+                    status.innerText = '✅ Ordem enviada! Aguarde a notificação de Sucesso.'; 
                     status.className = 'text-sm text-emerald-400 mb-6 font-bold';
                     btnClose.style.display = 'block';
                     fetchClients(); 
