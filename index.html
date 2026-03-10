@@ -242,7 +242,7 @@
         </div>
     </div>
 
-    <!-- MODAL OTA PROGRESSO (FORÇADO PARA MOSTRAR SEMPRE) -->
+    <!-- MODAL OTA PROGRESSO -->
     <div id="ota-progress-modal" style="display: none;" class="fixed inset-0 bg-black/95 z-[100] flex-col items-center justify-center p-4 backdrop-blur-sm">
         <div class="glass p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-2xl border border-blue-900/50 text-center">
             <div class="animate-bounce mb-4">
@@ -834,6 +834,10 @@
                 const displayName = clientData.status?.custom_name || clientId;
                 const escDisplayName = displayName.replace(/'/g, "\\'");
                 
+                // === LÓGICA DA VERSÃO DO AGENTE ===
+                // Se a máquina enviar a versão, mostra. Senão, assume que é versão antiga.
+                const agentVersion = clientData.status?.version || 'V1.0 (Legado)';
+                
                 let lastSeenStr = "Nunca";
                 if(clientData.status?.last_seen) {
                     let d = new Date(clientData.status.last_seen);
@@ -913,6 +917,7 @@
                                 <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-1.5 truncate" title="ID Original: ${clientId}">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" class="text-sky-500 flex-shrink-0 sm:w-4 sm:h-4"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                                     ${displayName}
+                                    <span class="bg-indigo-900/60 border border-indigo-500/50 text-indigo-300 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded font-bold ml-1">${agentVersion}</span>
                                     ${zombieBadge}
                                 </h3>
                                 <p class="text-[9px] sm:text-[10px] text-slate-400 mt-1 truncate">${user} @ ${ip}</p>
